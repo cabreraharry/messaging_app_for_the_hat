@@ -145,6 +145,9 @@ def reverse_transform(key_basis, data):
 one_distributor = "11110000"
 
 def encrypt(message, key):
+    print(f"Original message: {message}")
+    message_bin = string_to_binary(message).split(" ")
+    print(f"Binary message: {message_bin}")
     message_bin = string_to_binary(message).split(" ")
     if len(one_distributor) > 1:
         message_bin = xor_bits(message_bin, one_distributor,exclude_last=False)
@@ -171,6 +174,7 @@ def encrypt(message, key):
 
 
 def decrypt(cipher, key):
+    print(f"Encrypted cipher: {cipher}")
     cipher_bin = cipher.split(" ")
     key_bin = string_to_binary(key).split(" ")
     
