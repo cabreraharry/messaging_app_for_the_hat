@@ -10,6 +10,39 @@ import string
 def generate_key(length=16):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(length))
 
+def show_message_details(message, is_sent=True):
+    """ Display message details (binary, hex, ciphertext, etc.) """
+    # Original message in binary
+    message_binary = string_to_binary(message)
+    
+    # Encrypt the message
+    key = generate_key()
+    ciphertext = encrypt(message, key)
+    ciphertext_binary = remove_trailing_zeros(ciphertext)
+    encrypted_message = binary_to_string(ciphertext_binary)
+    
+    # Convert ciphertext to hex
+    ciphertext_hex = binary_to_hex(ciphertext_binary)
+
+    # Prepare the message display
+    details = f"\n{'Sent' if is_sent else 'Received'} message:\n"
+    details += f"Original message in binary:\n{' '.join(message_binary)}\n"
+    details += f"Original message: {message}\n"
+    details += f"\nCiphertext in binary:\n{' '.join(ciphertext_binary)}\n"
+    details += f"Ciphered Hex: {ciphertext_hex}\n"
+    details += f"\nCiphered text: {encrypted_message}\n"
+
+    # Decrypt the message for received side
+    if not is_sent:
+        deciphertext = remove_trailing_zeros(decrypt(ciphertext_binary, key))
+        decrypted_message = binary_to_string(deciphertext)
+        decrypted_hex = binary_to_hex(deciphertext)
+        details += f"\nDeciphertext in binary:\n{' '.join(deciphertext)}\n"
+        details += f"Deciphered Hex: {decrypted_hex}\n"
+        details += f"Deciphered text: {decrypted_message}\n"
+    
+    return details
+
 def receive_message(client_socket, text_area):
     while True:
         try:
@@ -21,7 +54,9 @@ def receive_message(client_socket, text_area):
                 deciphertext = remove_trailing_zeros(decrypt(ciphertext_binary, key))  # Decrypt the message
                 decrypted_message = binary_to_string(deciphertext)  # Convert binary back to text
 
-                # Display the decrypted message in the chat window
+                # Display the received message details
+                message_details = show_message_details(decrypted_message, is_sent=False)
+                text_area.insert(tk.END, message_details)  # Display received message details
                 text_area.insert(tk.END, f"Friend: {decrypted_message}\n")
                 text_area.yview(tk.END)  # Automatically scroll to the bottom
         except Exception as e:
@@ -36,6 +71,10 @@ def send_message(client_socket, message, text_area):
     ciphertext_binary = remove_trailing_zeros(ciphertext)  # Remove trailing zeros
     encrypted_message = binary_to_string(ciphertext_binary)  # Convert ciphertext to string
     client_socket.send(f"{key}:{encrypted_message}".encode())  # Send the key and encrypted message over the network
+
+    # Display sent message details
+    message_details = show_message_details(message, is_sent=True)
+    text_area.insert(tk.END, message_details)  # Display sent message details
     text_area.insert(tk.END, f"You: {message}\n")  # Display sent message
     text_area.yview(tk.END)  # Automatically scroll to the bottom
 
