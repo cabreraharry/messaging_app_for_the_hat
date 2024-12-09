@@ -10,13 +10,12 @@ import string
 def generate_key(length=16):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(length))
 
-def show_message_details(message, is_sent=True):
+def show_message_details(message, key, is_sent=True):
     """ Display message details (binary, hex, ciphertext, etc.) """
     # Original message in binary
     message_binary = string_to_binary(message)
     
     # Encrypt the message
-    key = generate_key()
     ciphertext = encrypt(message, key)
     ciphertext_binary = remove_trailing_zeros(ciphertext)
     encrypted_message = binary_to_string(ciphertext_binary)
@@ -28,6 +27,7 @@ def show_message_details(message, is_sent=True):
     details = f"\n{'Sent' if is_sent else 'Received'} message:\n"
     details += f"Original message in binary:\n{' '.join(message_binary)}\n"
     details += f"Original message: {message}\n"
+    details += f"\nGenerated Key: {key}\n"
     details += f"\nCiphertext in binary:\n{' '.join(ciphertext_binary)}\n"
     details += f"Ciphered Hex: {ciphertext_hex}\n"
     details += f"\nCiphered text: {encrypted_message}\n"
@@ -55,7 +55,7 @@ def receive_message(client_socket, text_area):
                 decrypted_message = binary_to_string(deciphertext)  # Convert binary back to text
 
                 # Display the received message details
-                message_details = show_message_details(decrypted_message, is_sent=False)
+                message_details = show_message_details(decrypted_message, key, is_sent=False)
                 text_area.insert(tk.END, message_details)  # Display received message details
                 text_area.insert(tk.END, f"Friend: {decrypted_message}\n")
                 text_area.yview(tk.END)  # Automatically scroll to the bottom
@@ -73,7 +73,7 @@ def send_message(client_socket, message, text_area):
     client_socket.send(f"{key}:{encrypted_message}".encode())  # Send the key and encrypted message over the network
 
     # Display sent message details
-    message_details = show_message_details(message, is_sent=True)
+    message_details = show_message_details(message, key, is_sent=True)
     text_area.insert(tk.END, message_details)  # Display sent message details
     text_area.insert(tk.END, f"You: {message}\n")  # Display sent message
     text_area.yview(tk.END)  # Automatically scroll to the bottom
